@@ -1,0 +1,8 @@
+[package]
+name = "ObsidianLite"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+poise = "0.3.0"
+serenity = "0.11"
