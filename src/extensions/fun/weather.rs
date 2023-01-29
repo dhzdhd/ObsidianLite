@@ -43,9 +43,14 @@ pub async fn weather(
                 "Temperature {}\n Wind{}",
                 response.temperature, response.wind
             ))
-            .footer(|f| f.text(&user.name).icon_url(user.avatar_url().unwrap_or(user.default_avatar_url())))
+            .footer(|f| {
+                f.text(&user.name)
+                    .icon_url(user.avatar_url().unwrap_or(user.default_avatar_url()))
+            })
             .colour(Color::BLURPLE)
-            .thumbnail("https://camo.githubusercontent.com/1aab89eda0e0e99d9aa2e7318d8161c370bfb6d75c2945a60f3b0cd1eb8a8c3c/68747470733a2f2f626d63646e2e6e6c2f6173736574732f776561746865722d69636f6e732f76332e302f66696c6c2f7376672f706172746c792d636c6f7564792d6461792e737667")
+            .thumbnail(
+                "https://www.freeiconspng.com/thumbs/weather-icon-png/weather-icon-png-2.png",
+            )
             .timestamp(Utc::now())
             .fields(response.forecast.iter().map(|el| {
                 (
