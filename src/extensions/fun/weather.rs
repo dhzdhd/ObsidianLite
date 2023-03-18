@@ -24,7 +24,7 @@ pub async fn weather(
     ctx: Context<'_>,
     #[description = "Enter a city"] city: String,
 ) -> Result<(), Error> {
-    let response = reqwest::get(format!("https://goweather.herokuapp.com/weather/{}", city))
+    let response = reqwest::get(format!("https://goweather.herokuapp.com/weather/{city}"))
         .await
         .map_err(|_| "API endpoint unreachable!")?
         .json::<Weather>()
@@ -40,7 +40,7 @@ pub async fn weather(
                 response.description, city
             ))
             .description(format!(
-                "Temperature {}\n Wind{}",
+                "Temperature {}\n Wind {}",
                 response.temperature, response.wind
             ))
             .footer(|f| {
