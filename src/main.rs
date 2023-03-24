@@ -1,9 +1,9 @@
 use anyhow::Context as _;
-use extensions::{fun::weather::weather, utils::help::help};
 use extensions::moderator::mute::mute;
+use extensions::{fun::weather::weather, utils::help::help};
 use poise::serenity_prelude::{self as serenity, GuildId};
+use shuttle_poise::ShuttlePoise;
 use shuttle_secrets::SecretStore;
-use shuttle_service::ShuttlePoise;
 
 mod extensions;
 
@@ -18,7 +18,7 @@ async fn hello(ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
-#[shuttle_service::main]
+#[shuttle_runtime::main]
 async fn poise(#[shuttle_secrets::Secrets] secret_store: SecretStore) -> ShuttlePoise<Data, Error> {
     // Get the discord token set in `Secrets.toml`
     let discord_token: String;
@@ -59,7 +59,7 @@ async fn poise(#[shuttle_secrets::Secrets] secret_store: SecretStore) -> Shuttle
         })
         .build()
         .await
-        .map_err(shuttle_service::error::CustomError::new)?;
+        .map_err(shuttle_runtime::CustomError::new)?;
 
-    Ok(framework)
+    Ok(framework.into())
 }
