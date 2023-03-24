@@ -29,7 +29,7 @@ pub async fn mute(
                 guild
                     .create_role(ctx.http(), |r| {
                         r.name("muted")
-                            .permissions(Permissions::SEND_MESSAGES)
+                            .position(guild.roles.values().len() as u8)
                             .hoist(true)
                     })
                     .await?
