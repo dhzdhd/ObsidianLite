@@ -1,6 +1,7 @@
 use std::time::Duration;
 
-use poise::serenity_prelude::{CacheHttp, Member, Permissions};
+use chrono::Days;
+use poise::serenity_prelude::{CacheHttp, Member, PermissionOverwrite, Permissions, Timestamp};
 use tokio::time::sleep;
 
 use crate::{Context, Error};
@@ -22,32 +23,7 @@ pub async fn mute(
     #[description = "Duration in minutes. Member muted till unmute invoked. if not specified"]
     duration: Option<u64>,
 ) -> Result<(), Error> {
-    if let Some(guild) = ctx.guild() {
-        let role = match guild.role_by_name("muted") {
-            Some(r) => r.clone(),
-            None => {
-                guild
-                    .create_role(ctx.http(), |r| {
-                        r.name("muted")
-                            .position(guild.roles.values().len() as u8)
-                            .hoist(true)
-                    })
-                    .await?
-            }
-        };
-
-        member.add_role(ctx.http(), role.id).await?;
-
-        ctx.say("Muted user").await?;
-
-        if let Some(duration) = duration {
-            sleep(Duration::from_millis(duration * 60 * 1000)).await;
-
-            member.remove_role(ctx.http(), role.id).await?;
-
-            ctx.say("Unmuted").await?;
-        }
-    }
+    // member.disable_communication_until_datetime(ctx.http());
 
     Ok(())
 }
