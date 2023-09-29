@@ -7,7 +7,7 @@ use shuttle_secrets::SecretStore;
 
 mod extensions;
 
-pub struct Data {} // User data, which is stored and accessible in all command invocations
+pub struct Data {} // User data
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
 
@@ -20,7 +20,6 @@ async fn hello(ctx: Context<'_>) -> Result<(), Error> {
 
 #[shuttle_runtime::main]
 async fn poise(#[shuttle_secrets::Secrets] secret_store: SecretStore) -> ShuttlePoise<Data, Error> {
-    // Get the discord token set in `Secrets.toml`
     let discord_token: String;
     if cfg!(debug_assertions) {
         discord_token = secret_store
