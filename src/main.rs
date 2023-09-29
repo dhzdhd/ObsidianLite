@@ -1,4 +1,5 @@
 use anyhow::Context as _;
+use extensions::fun::gpt::provider::gpt;
 use extensions::moderator::mute::mute;
 use extensions::{fun::weather::weather, utils::help::help};
 use poise::serenity_prelude::{self as serenity, GuildId};
@@ -39,7 +40,7 @@ async fn poise(#[shuttle_secrets::Secrets] secret_store: SecretStore) -> Shuttle
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![hello(), weather(), mute(), help()],
+            commands: vec![hello(), weather(), mute(), help(), gpt()],
             ..Default::default()
         })
         .token(discord_token)
