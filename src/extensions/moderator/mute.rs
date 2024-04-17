@@ -1,8 +1,4 @@
-use std::time::Duration;
-
-use chrono::Days;
-use poise::serenity_prelude::{CacheHttp, Member, PermissionOverwrite, Permissions, Timestamp};
-use tokio::time::sleep;
+use poise::serenity_prelude::Member;
 
 use crate::{Context, Error};
 
@@ -18,10 +14,10 @@ use crate::{Context, Error};
     guild_only
 )]
 pub async fn mute(
-    ctx: Context<'_>,
-    #[description = "The member you want to mute"] mut member: Member,
+    _ctx: Context<'_>,
+    #[description = "The member you want to mute"] _member: Member,
     #[description = "Duration in minutes. Member muted till unmute invoked. if not specified"]
-    duration: Option<u64>,
+    _duration: Option<u64>,
 ) -> Result<(), Error> {
     // member.disable_communication_until_datetime(ctx.http());
 

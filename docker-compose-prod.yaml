@@ -1,0 +1,7 @@
+services:
+  bot:
+    container_name: bot
+    image: ghcr.io/dhzdhd/ObsidianLite:v0.1.0
+    restart: unless-stopped
+    env_file:
+      - .env
