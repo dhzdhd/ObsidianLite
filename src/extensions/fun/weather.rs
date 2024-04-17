@@ -1,4 +1,5 @@
 use chrono::Utc;
+use poise::serenity_prelude as serenity;
 use poise::serenity_prelude::Color;
 use serde::Deserialize;
 
@@ -31,11 +32,10 @@ pub async fn weather(
         .await
         .map_err(|_| "Weather for the given city does not exist!")?;
 
-    ctx.send(|b| {
-        b.embed(|e| {
-            let user = ctx.author();
-
-            e.title(format!(
+    let user = ctx.author();
+    let reply = {
+        let embed = serenity::CreateEmbed::default()
+            .title(format!(
                 "It is currently {} in {}",
                 response.description, city
             ))
@@ -43,10 +43,10 @@ pub async fn weather(
                 "Temperature {}\n Wind {}",
                 response.temperature, response.wind
             ))
-            .footer(|f| {
-                f.text(&user.name)
-                    .icon_url(user.avatar_url().unwrap_or(user.default_avatar_url()))
-            })
+            .footer(
+                serenity::CreateEmbedFooter::new(&user.name)
+                    .icon_url(user.avatar_url().unwrap_or(user.default_avatar_url())),
+            )
             .colour(Color::BLURPLE)
             .thumbnail(
                 "https://www.freeiconspng.com/thumbs/weather-icon-png/weather-icon-png-2.png",
@@ -58,10 +58,12 @@ pub async fn weather(
                     format!("Temperature {}\nWind {}", el.temperature, el.wind),
                     false,
                 )
-            }))
-        })
-    })
-    .await?;
+            }));
+
+        poise::CreateReply::default().embed(embed)
+    };
+
+    ctx.send(reply).await?;
 
     Ok(())
 }
