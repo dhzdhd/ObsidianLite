@@ -21,7 +21,10 @@ async fn hello(ctx: Context<'_>) -> Result<(), Error> {
 
 #[tokio::main]
 async fn main() {
-    dotenv().expect(".env file not found");
+    match dotenv() {
+        Ok(_) => println!(".env file loaded"),
+        Err(_) => println!(".env file failed to load"),
+    }
 
     let discord_token = if cfg!(debug_assertions) {
         std::env::var("DEV_DISCORD_TOKEN").expect("'DISCORD_TOKEN' was not found")
