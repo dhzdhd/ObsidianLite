@@ -1,0 +1,4 @@
+---
+- ansible.builtin.import_playbook: playbooks/docker.yml
+
+- ansible.builtin.import_playbook: playbooks/bot.yml

@@ -1,0 +1,42 @@
+---
+- name: Bot
+  hosts: cloud
+  tasks:
+    - name: Pull repo
+      ansible.builtin.git:
+        repo: https://github.com/dhzdhd/ObsidianLite.git
+        clone: true
+        dest: /home/ubuntu/ObsidianLite
+
+    - name: Check if .env exists
+      ansible.builtin.stat:
+        path: /home/ubuntu/.env
+      register: stat_result
+
+    - name: Assert that .env exists
+      ansible.builtin.assert:
+        that:
+          - stat_result.stat.exists
+        fail_msg: "Create .env file before running this!"
+
+    - name: Copy .env file to the workdir
+      ansible.builtin.shell:
+        cmd: cp /home/ubuntu/.env /home/ubuntu/ObsidianLite/.env
+
+    - name: Check if .env has been copied
+      ansible.builtin.stat:
+        path: /home/ubuntu/ObsidianLite/.env
+      register: cp_result
+
+    - name: Assert that .env has been copied
+      ansible.builtin.assert:
+        that:
+          - cp_result.stat.exists
+        fail_msg: "Moving .env file failed"
+
+    - name: Run bot with docker
+      become: true
+      community.docker.docker_compose_v2:
+        project_src: /home/ubuntu/ObsidianLite
+        files: docker-compose-prod.yaml
+      register: output
