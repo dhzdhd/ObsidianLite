@@ -1,0 +1,6 @@
+---
+cloud:
+  hosts:
+    <ip>:
+  vars:
+    ansible_user: <user>
