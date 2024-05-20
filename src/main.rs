@@ -1,18 +1,24 @@
-// use anyhow::Context as _;
 use dotenvy::dotenv;
+use event_handler::event_handler;
 use extensions::moderator::mute::mute;
+use extensions::utils::event::event_periodic_task;
 use extensions::{fun::weather::weather, utils::event::event, utils::help::help};
 use poise::serenity_prelude::{self as serenity, GuildId};
-// use shuttle_poise::ShuttlePoise;
-// use shuttle_secrets::SecretStore;
 
+mod event_handler;
 mod extensions;
 
-pub struct Data {} // User data
+pub struct Data {}
+
+impl Default for Data {
+    fn default() -> Self {
+        Self {}
+    }
+}
+
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
 
-/// Responds with "world!"
 #[poise::command(slash_command)]
 async fn hello(ctx: Context<'_>) -> Result<(), Error> {
     ctx.say("world!").await?;
@@ -20,7 +26,7 @@ async fn hello(ctx: Context<'_>) -> Result<(), Error> {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Error> {
     match dotenv() {
         Ok(_) => println!(".env file loaded"),
         Err(_) => println!(".env file failed to load"),
@@ -40,6 +46,9 @@ async fn main() {
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
             commands: vec![hello(), weather(), mute(), event(), help()],
+            event_handler: |ctx, event, framework, data| {
+                Box::pin(event_handler(ctx, event, framework, data))
+            },
             ..Default::default()
         })
         .setup(move |ctx, _ready, framework| {
@@ -51,14 +60,18 @@ async fn main() {
                 )
                 .await?;
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
-                Ok(Data {})
+                Ok(Data::default())
             })
         })
         .build();
 
-    let client = serenity::ClientBuilder::new(discord_token, serenity::GatewayIntents::all())
+    let mut client = serenity::ClientBuilder::new(discord_token, serenity::GatewayIntents::all())
         .framework(framework)
-        .await;
+        .await?;
 
-    client.unwrap().start().await.unwrap();
+    client.start().await?;
+
+    tokio::spawn(event_periodic_task(client.http, Data::default()));
+
+    Ok(())
 }
