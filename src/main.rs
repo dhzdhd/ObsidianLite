@@ -4,15 +4,20 @@ use extensions::moderator::mute::mute;
 use extensions::utils::event::event_periodic_task;
 use extensions::{fun::weather::weather, utils::event::event, utils::help::help};
 use poise::serenity_prelude::{self as serenity, GuildId};
+use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
+use sqlx::SqlitePool;
 
 mod event_handler;
 mod extensions;
 
-pub struct Data {}
+#[derive(Clone)]
+pub struct Data {
+    pub database: SqlitePool,
+}
 
-impl Default for Data {
-    fn default() -> Self {
-        Self {}
+impl Data {
+    fn new(database: SqlitePool) -> Self {
+        Self { database }
     }
 }
 
@@ -43,6 +48,24 @@ async fn main() -> Result<(), Error> {
         .parse::<u64>()
         .expect("The Guild ID is not an integer!");
 
+    let database = SqlitePoolOptions::new()
+        .max_connections(5)
+        .connect_with(
+            SqliteConnectOptions::new()
+                .filename("database.sqlite")
+                .create_if_missing(true),
+        )
+        .await
+        .expect("Could not connect to database");
+
+    sqlx::migrate!("./migrations")
+        .run(&database)
+        .await
+        .expect("Couldn't run database migrations");
+
+    let data = Data::new(database);
+    let data_clone = data.clone();
+
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
             commands: vec![hello(), weather(), mute(), event(), help()],
@@ -60,7 +83,7 @@ async fn main() -> Result<(), Error> {
                 )
                 .await?;
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
-                Ok(Data::default())
+                Ok(data.clone())
             })
         })
         .build();
@@ -69,9 +92,13 @@ async fn main() -> Result<(), Error> {
         .framework(framework)
         .await?;
 
-    client.start().await?;
-
-    tokio::spawn(event_periodic_task(client.http, Data::default()));
+    // tokio::spawn(event_periodic_task(client.http.clone(), data_clone)).await??;
+    // client.start().await?;
+    tokio::join!(
+        event_periodic_task(client.http.clone(), data_clone),
+        client.start(),
+    )
+    .0?;
 
     Ok(())
 }

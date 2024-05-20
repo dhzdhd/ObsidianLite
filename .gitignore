@@ -5,3 +5,5 @@ Secrets.toml
 
 hosts.yml
 .vscode/
+
+database.sqlite*

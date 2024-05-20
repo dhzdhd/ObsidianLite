@@ -23,3 +23,4 @@ tokio-tungstenite = { version = "0.21.0", default_features = false, features = [
 tokio-native-tls = "0.3.1"
 url = "2.4.1"
 dotenvy = "0.15.7"
+sqlx = { version = "0.7", features = ["runtime-tokio", "tls-rustls", "sqlite"] }
