@@ -1,7 +1,7 @@
 // use anyhow::Context as _;
 use dotenvy::dotenv;
 use extensions::moderator::mute::mute;
-use extensions::{fun::weather::weather, utils::help::help};
+use extensions::{fun::weather::weather, utils::event::event, utils::help::help};
 use poise::serenity_prelude::{self as serenity, GuildId};
 // use shuttle_poise::ShuttlePoise;
 // use shuttle_secrets::SecretStore;
@@ -39,7 +39,7 @@ async fn main() {
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![hello(), weather(), mute(), help()],
+            commands: vec![hello(), weather(), mute(), event(), help()],
             ..Default::default()
         })
         .setup(move |ctx, _ready, framework| {

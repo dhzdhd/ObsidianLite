@@ -1,0 +1,9 @@
+FROM rustserverless/lambda-rust
+
+COPY . ${LAMBDA_TASK_ROOT}
+
+RUN apt update && apt install -y pkg-config libssl-dev openssl
+RUN cargo build -r
+
+ENTRYPOINT [ "cargo" ]
+CMD ["run", "--release", "--quiet"]
