@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT durations FROM event WHERE event_id=?",
+  "describe": {
+    "columns": [
+      {
+        "name": "durations",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "6b3de6bc742a9d37ea491f1567ac90dd9e837ebdb5c03ec42931570c132ce4fa"
+}

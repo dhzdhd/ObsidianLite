@@ -72,6 +72,7 @@ async fn main() -> Result<(), Error> {
             event_handler: |ctx, event, framework, data| {
                 Box::pin(event_handler(ctx, event, framework, data))
             },
+
             ..Default::default()
         })
         .setup(move |ctx, _ready, framework| {
