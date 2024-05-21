@@ -1,4 +1,5 @@
 use dotenvy::dotenv;
+// use error_handler::{on_error, BotError};
 use event_handler::event_handler;
 use extensions::moderator::mute::mute;
 use extensions::utils::event::event_periodic_task;
@@ -7,10 +8,11 @@ use poise::serenity_prelude::{self as serenity, GuildId};
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 use sqlx::SqlitePool;
 
+mod error_handler;
 mod event_handler;
 mod extensions;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Data {
     pub database: SqlitePool,
 }
@@ -22,11 +24,12 @@ impl Data {
 }
 
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
+// pub type Error = BotError;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
 
 #[poise::command(slash_command)]
 async fn hello(ctx: Context<'_>) -> Result<(), Error> {
-    ctx.say("world!").await?;
+    ctx.reply("world!").await?;
     Ok(())
 }
 
@@ -72,7 +75,7 @@ async fn main() -> Result<(), Error> {
             event_handler: |ctx, event, framework, data| {
                 Box::pin(event_handler(ctx, event, framework, data))
             },
-
+            // on_error: |error| Box::pin(on_error(error)),
             ..Default::default()
         })
         .setup(move |ctx, _ready, framework| {
@@ -93,8 +96,6 @@ async fn main() -> Result<(), Error> {
         .framework(framework)
         .await?;
 
-    // tokio::spawn(event_periodic_task(client.http.clone(), data_clone)).await??;
-    // client.start().await?;
     tokio::join!(
         event_periodic_task(client.http.clone(), data_clone),
         client.start(),

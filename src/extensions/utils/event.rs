@@ -2,8 +2,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use poise::{
-    serenity_prelude::{self, GuildId, Http, ScheduledEventId},
-    ChoiceParameter,
+    serenity_prelude::{GuildId, Http, ScheduledEventId},
+    ChoiceParameter, CreateReply, ReplyHandle,
 };
 use sqlx::query;
 
@@ -17,11 +17,15 @@ pub async fn event_periodic_task(ctx: Arc<Http>, data: Data) -> Result<(), Error
         for record in result.iter() {
             let guild_id = GuildId::new(record.guild_id as u64);
             let event_id = ScheduledEventId::new(record.event_id as u64);
+            let durations = serde_json::from_str::<Vec<EventDurationKind>>(&record.durations)?;
 
             // let guild = ctx.get_guild(guild_id).await?;
-            let event = ctx.get_scheduled_event(guild_id, event_id, true).await?;
+            let event = ctx
+                .get_scheduled_event(guild_id, event_id, true)
+                .await
+                .map_err(|_| "Hell nah")?;
 
-            println!("{:#?}", event.start_time);
+            println!("{:#?}\n{:#?}\n", event.start_time, durations);
         }
 
         tokio::time::sleep(Duration::from_secs(10)).await;
@@ -45,8 +49,6 @@ pub async fn event(
     #[description = "Kind"] kind: EventChoiceParameter,
     #[description = "Duration"] duration: Option<u64>,
 ) -> Result<(), Error> {
-    panic!("Hello World");
-
     let database = &ctx.data().database;
     let guild_id = ctx.guild_id().unwrap();
     let event = ctx
@@ -57,8 +59,8 @@ pub async fn event(
 
     let event_duration_kind = match kind {
         EventChoiceParameter::StartOfDay => EventDurationKind::StartOfDay,
-        EventChoiceParameter::Hour => EventDurationKind::Hour(duration.unwrap()),
-        EventChoiceParameter::Minute => EventDurationKind::Minute(duration.unwrap()),
+        EventChoiceParameter::Hour => EventDurationKind::Hour(duration.ok_or("err")?),
+        EventChoiceParameter::Minute => EventDurationKind::Minute(duration.ok_or("err")?),
     };
 
     let old_durations_str = query!("SELECT durations FROM event WHERE event_id=?", event_id)
@@ -80,7 +82,12 @@ pub async fn event(
     .execute(database)
     .await?;
 
-    ctx.say("Event updated!").await?;
+    ctx.send(
+        CreateReply::default()
+            .content("Event updated!")
+            .ephemeral(true),
+    )
+    .await?;
 
     Ok(())
 }
