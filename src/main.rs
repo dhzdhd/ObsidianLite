@@ -1,4 +1,5 @@
 use dotenvy::dotenv;
+use error_handler::on_error;
 // use error_handler::{on_error, BotError};
 use event_handler::event_handler;
 use extensions::moderator::mute::mute;
@@ -75,7 +76,7 @@ async fn main() -> Result<(), Error> {
             event_handler: |ctx, event, framework, data| {
                 Box::pin(event_handler(ctx, event, framework, data))
             },
-            // on_error: |error| Box::pin(on_error(error)),
+            on_error: |error| Box::pin(on_error(error)),
             ..Default::default()
         })
         .setup(move |ctx, _ready, framework| {

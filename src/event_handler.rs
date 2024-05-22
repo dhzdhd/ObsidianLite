@@ -5,7 +5,7 @@ use sqlx::query;
 
 use crate::{Data, Error};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum EventDurationKind {
     StartOfDay, // 7 AM
     Hour(u64),
