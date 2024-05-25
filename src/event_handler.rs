@@ -5,7 +5,7 @@ use sqlx::query;
 
 use crate::{Data, Error};
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum EventDurationKind {
     StartOfDay, // 7 AM
     Hour(u64),
@@ -42,6 +42,7 @@ pub async fn event_handler<'a>(
             .await?;
         }
         FullEvent::GuildScheduledEventDelete { event } => {
+            // TODO: Do not delete if already deleted (start time reached)
             let event_id = event.id.get() as i64;
             query!("DELETE FROM event WHERE event_id=?", event_id)
                 .execute(database)
