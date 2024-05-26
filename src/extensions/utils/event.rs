@@ -1,4 +1,4 @@
-use chrono::{Duration, NaiveTime};
+use chrono::{DateTime, Duration, Local, NaiveTime, TimeZone};
 use poise::{
     serenity_prelude::{
         colours::roles::BLUE, CacheHttp, CreateEmbed, CreateMessage, GuildId, Http,
@@ -59,7 +59,13 @@ pub async fn event_periodic_task(ctx: Arc<Http>, data: Data) -> Result<(), Error
                     .description(event.description.unwrap_or("No description".to_owned()))
                     .fields([(
                         "Scheduled at",
-                        event.start_time.format("%Y/%m/%d %H:%M").to_string(),
+                        // Gets local time instead of UTC
+                        DateTime::<Local>::from_naive_utc_and_offset(
+                            event.start_time.naive_utc(),
+                            Local::now().offset().clone(),
+                        )
+                        .format("%H:%M %d/%m/%Y")
+                        .to_string(),
                         false,
                     )])
                     .timestamp(Timestamp::now())
@@ -76,7 +82,7 @@ pub async fn event_periodic_task(ctx: Arc<Http>, data: Data) -> Result<(), Error
             for duration in durations.clone() {
                 match duration {
                     EventDurationKind::StartOfDay => {
-                        if Timestamp::now().naive_local() > start_of_day_datetime {
+                        if Timestamp::now().naive_utc() > start_of_day_datetime {
                             for member in members.iter() {
                                 member
                                     .user
@@ -92,7 +98,7 @@ pub async fn event_periodic_task(ctx: Arc<Http>, data: Data) -> Result<(), Error
                             .checked_sub_signed(Duration::hours(time as i64))
                             .unwrap();
 
-                        if Timestamp::now().naive_local() > hour_datetime {
+                        if Timestamp::now().naive_utc() > hour_datetime {
                             for member in members.iter() {
                                 member
                                     .user
@@ -108,7 +114,7 @@ pub async fn event_periodic_task(ctx: Arc<Http>, data: Data) -> Result<(), Error
                             .checked_sub_signed(Duration::minutes(time as i64))
                             .unwrap();
 
-                        if Timestamp::now().naive_local() > minute_datetime {
+                        if Timestamp::now().naive_utc() > minute_datetime {
                             for member in members.iter() {
                                 member
                                     .user
@@ -128,11 +134,13 @@ pub async fn event_periodic_task(ctx: Arc<Http>, data: Data) -> Result<(), Error
                 .into_iter()
                 .filter(|e| !used_durations.contains(e))
                 .collect::<Vec<EventDurationKind>>();
+            println!("{:?}, {:?}", new_durations, used_durations);
             let new_durations_str =
                 serde_json::to_string::<Vec<EventDurationKind>>(&new_durations)?;
+            println!("{new_durations_str}");
 
             // Update only if atleast 1 duration has been finished
-            if !new_durations.is_empty() {
+            if !used_durations.is_empty() {
                 query!(
                     "UPDATE event SET durations=? WHERE event_id=?",
                     new_durations_str,
