@@ -1,4 +1,4 @@
-use chrono::{DateTime, Duration, Local, NaiveTime, TimeZone};
+use chrono::{DateTime, Duration, Local, NaiveTime};
 use poise::{
     serenity_prelude::{
         colours::roles::BLUE, CacheHttp, CreateEmbed, CreateMessage, GuildId, Http,
@@ -82,7 +82,14 @@ pub async fn event_periodic_task(ctx: Arc<Http>, data: Data) -> Result<(), Error
             for duration in durations.clone() {
                 match duration {
                     EventDurationKind::StartOfDay => {
-                        if Timestamp::now().naive_utc() > start_of_day_datetime {
+                        // Get current time in local time (UTC + offset)
+                        let local_naive_datetime = DateTime::<Local>::from_naive_utc_and_offset(
+                            Timestamp::now().naive_local(),
+                            Local::now().offset().clone(),
+                        )
+                        .naive_local();
+
+                        if local_naive_datetime > start_of_day_datetime {
                             for member in members.iter() {
                                 member
                                     .user
@@ -134,10 +141,8 @@ pub async fn event_periodic_task(ctx: Arc<Http>, data: Data) -> Result<(), Error
                 .into_iter()
                 .filter(|e| !used_durations.contains(e))
                 .collect::<Vec<EventDurationKind>>();
-            println!("{:?}, {:?}", new_durations, used_durations);
             let new_durations_str =
                 serde_json::to_string::<Vec<EventDurationKind>>(&new_durations)?;
-            println!("{new_durations_str}");
 
             // Update only if atleast 1 duration has been finished
             if !used_durations.is_empty() {
