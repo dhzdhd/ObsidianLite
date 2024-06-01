@@ -17,8 +17,9 @@
 
 - Server
   - From the `ObsidianLite` directory, run the commands
-    - `pulumi up --cwd ./iac/pulumi`
-    - `ansible-playbook -i ./iac/ansible/hosts.yml --private-key ~/.ssh/aws.pem iac/ansible/playbook.yml`
+    - `pulumi up --cwd ./iac/vm/pulumi`
+    - `scp -i ~/.ssh/aws.pem .env ubuntu@<ip>:/home/ubuntu/.env`
+    - `ansible-playbook -i ./iac/vm/ansible/hosts.yml --private-key ~/.ssh/aws.pem iac/vm/ansible/playbook.yml`
 - Docker
   - Building image locally
     - Run `docker compose up -d`
