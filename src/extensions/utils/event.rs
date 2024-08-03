@@ -55,19 +55,43 @@ pub async fn event_periodic_task(ctx: Arc<Http>, data: Data) -> Result<(), Error
             // Create event message embed
             let event_embed = CreateMessage::new().add_embed(
                 CreateEmbed::new()
-                    .title(format!("Event | {}", event.name))
+                    .title(format!(":pushpin: {}", event.name))
                     .description(event.description.unwrap_or("No description".to_owned()))
-                    .fields([(
-                        "Scheduled at",
-                        // Gets local time instead of UTC
-                        DateTime::<Local>::from_naive_utc_and_offset(
-                            event.start_time.naive_utc(),
-                            Local::now().offset().clone(),
-                        )
-                        .format("%H:%M %d/%m/%Y")
-                        .to_string(),
-                        false,
-                    )])
+                    .fields([
+                        (
+                            ":briefcase: Location",
+                            match event.metadata {
+                                Some(x) => match x.location {
+                                    Some(location) => location,
+                                    None => "None".to_owned(),
+                                },
+                                None => "None".to_owned(),
+                            },
+                            false,
+                        ),
+                        (
+                            ":date: Date",
+                            // Gets local time instead of UTC
+                            DateTime::<Local>::from_naive_utc_and_offset(
+                                event.start_time.naive_utc(),
+                                Local::now().offset().clone(),
+                            )
+                            .format("%d/%m/%Y")
+                            .to_string(),
+                            false,
+                        ),
+                        (
+                            ":hourglass: Time",
+                            // Gets local time instead of UTC
+                            DateTime::<Local>::from_naive_utc_and_offset(
+                                event.start_time.naive_utc(),
+                                Local::now().offset().clone(),
+                            )
+                            .format("%H:%M")
+                            .to_string(),
+                            false,
+                        ),
+                    ])
                     .timestamp(Timestamp::now())
                     .color(BLUE),
             );
